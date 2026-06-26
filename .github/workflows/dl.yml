@@ -39,4 +39,6 @@ jobs:
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
           name: ${{ steps.tag.outputs.tag }}
+          body: |
+            Source: ${{ steps.url.outputs.url }}
           files: ${{ steps.url.outputs.filename }}
