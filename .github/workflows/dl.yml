@@ -1,0 +1,31 @@
+name: dl
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  dl:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Generate timestamp tag
+        id: tag
+        run: echo "tag=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
+
+      - name: Download ISO
+        run: |
+          curl -L -o debian-testing-loong64-netinst.iso \
+            https://cdimage.debian.org/cdimage/daily-builds/daily/current/loong64/iso-cd/debian-testing-loong64-netinst.iso
+
+      - name: Release ISO
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: ${{ steps.tag.outputs.tag }}
+          files: debian-testing-loong64-netinst.iso
