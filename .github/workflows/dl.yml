@@ -7,6 +7,11 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      url:
+        description: 'ISO download URL'
+        required: false
+        default: 'https://cdimage.debian.org/cdimage/ports/snapshots/2025-12-05/debian-13.0.0-loong64-CD-1.iso'
 
 jobs:
   dl:
@@ -18,14 +23,20 @@ jobs:
         id: tag
         run: echo "tag=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
 
-      - name: Download ISO
+      - name: Set URL and filename
+        id: url
         run: |
-          curl -L -o debian-testing-loong64-netinst.iso \
-            https://cdimage.debian.org/cdimage/daily-builds/daily/current/loong64/iso-cd/debian-testing-loong64-netinst.iso
+          URL="${{ inputs.url || 'https://cdimage.debian.org/cdimage/ports/snapshots/2025-12-05/debian-13.0.0-loong64-CD-1.iso' }}"
+          FILENAME="${URL##*/}"
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "filename=$FILENAME" >> $GITHUB_OUTPUT
+
+      - name: Download ISO
+        run: curl -L -o "${{ steps.url.outputs.filename }}" "${{ steps.url.outputs.url }}"
 
       - name: Release ISO
         uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
           name: ${{ steps.tag.outputs.tag }}
-          files: debian-testing-loong64-netinst.iso
+          files: ${{ steps.url.outputs.filename }}
